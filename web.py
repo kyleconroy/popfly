@@ -21,8 +21,9 @@ def create_instance(conn, ttl):
 
 
 def tunnel_cmd(instance):
-    cmd = "ssh -i ~/.ssh/{}.pem ubuntu@{} -D 2001"
-    return cmd.format(os.environ['AWS_KEY_NAME'], instance.public_dns_name)
+    cmd = "ssh -i ~/.ssh/{}.pem {}@{} -D 2001"
+    return cmd.format(os.environ['AWS_KEY_NAME'], os.environ['AWS_USER'],
+                      instance.public_dns_name)
 
 
 def get_instances(conn):
