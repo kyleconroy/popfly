@@ -36,6 +36,7 @@ def should_kill(instance):
 
 
 def kill(instance):
+    instance.terminate()
     print "BOOM"
 
 
