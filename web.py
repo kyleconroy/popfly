@@ -1,23 +1,44 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, render_template
 import redis
 import os, urlparse
 from functools import wraps
+import boto
 
 
-if os.environ.has_key('REDISTOGO_URL'):
+try:
     urlparse.uses_netloc.append('redis')
     url = urlparse.urlparse(os.environ['REDISTOGO_URL'])
-    r = redis.Redis(host=url.hostname, port=url.port, 
-                    db=0, password=url.password)
-else:
-    r = redis.Redis()
+    r = redis.StrictRedis(host=url.hostname, port=url.port, 
+                          db=0, password=url.password)
+except KeyError:
+    r = redis.StrictRedis()
 
 
 def check_auth(username, password):
     """This function is called to check if a username /
     password combination is valid.
     """
-    return username == 'admin' and password == 'secret'
+    return password == 'secret'
+
+
+def boot_machine(ttl):
+    conn = boto.connect_ec2()
+    conn.run_instances(
+        os.environ['AWS_AMI_IMAGE'],
+        key_name=os.environ['AWS_KEY_PATH_PATH'],
+        instance_type=os.environ['AWS_MACHINE_SIZE'],
+        security_groups=[os.environ['AWS_SECURITY_GROUP'])
+
+
+def machine(name):
+    return {
+        'instance_id': name,
+        'tunnel': '',
+    }
+
+
+def machines():
+    return [machine(name) for name in r.zrange("machines", 0, -1)]
 
 
 def authenticate():
@@ -40,6 +61,11 @@ def authenticated(f):
 app = Flask(__name__)
 
 @app.route("/")
-@authenticated
 def index():
-    pass
+    return render_template("index.html")
+
+
+@app.route("/machines")
+@authenticated
+def machines():
+    return render_template("machines.html")
