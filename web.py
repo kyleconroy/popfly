@@ -56,6 +56,11 @@ app = Flask(__name__)
 app.debug = True
 
 
+@app.route("/help")
+def help():
+    return render_template("help.html")
+
+
 @app.route("/")
 def index():
     return render_template("index.html")

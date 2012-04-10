@@ -1,0 +1,17 @@
+.title {
+  font-size: 85px;
+  line-height: 130px;
+  margin: 20px 0;
+}
+
+.landing {
+  text-align: center;
+}
+
+form.nav {
+  padding: 16px 0 0 0;
+}
+
+.page {
+  padding: 0 20px;
+}

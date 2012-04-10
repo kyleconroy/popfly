@@ -1,22 +1,16 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Boot an Instance</h2>
-<form method="POST">
-  <label for="ttl">Machine TTL</label>
-  <input type="number" name="ttl" min="1" max="6" required>
-  <input type="submit" value="Boot Machine">
-</form>
-<h2>Active Instances</h2>
+{% extends "page.html" %}
+{% block page %}
 <ul>
   {% for machine in machines %}
   <li>
     <pre>{{ machine.socks }}</pre>
     <form method="post"
           action="{{ url_for('terminate', instance_id=machine.id) }}">
-      <input type="submit" value="Terminate Machine">
+      <input class="btn" type="submit" value="Terminate Machine">
     </form>
   </li>
+  {% else %}
+  <li>No machines currently running.</li>
   {% endfor %}
 </ul>
-<img src="{{ url_for('static', filename='firefox_proxy.png') }}" />
 {% endblock %}
