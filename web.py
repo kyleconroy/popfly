@@ -1,4 +1,4 @@
-from flask import Flask, request, Response, render_template
+from flask import Flask, request, Response, render_template, redirect
 import os, urlparse, json
 from functools import wraps
 import boto
@@ -30,7 +30,8 @@ def get_instances(conn):
     for reservation in conn.get_all_instances():
         for instance in reservation.instances:
             if instance.state == 'running':
-                yield tunnel_cmd(instance)
+                instance.socks = tunnel_cmd(instance)
+                yield instance
 
 
 def authenticate():
@@ -60,10 +61,20 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/machines/<instance_id>", methods=['POST'])
+def terminate(instance_id):
+    conn = boto.connect_ec2()
+    for reservation in conn.get_all_instances(instance_ids=[instance_id]):
+        for instance in reservation.instances:
+            instance.terminate()
+    return redirect("/machines")
+
+
 @app.route("/machines", methods=['POST', 'GET'])
 @authenticated
 def machines():
     conn = boto.connect_ec2()
     if request.method == 'POST':
         create_instance(conn, int(request.form.get('ttl', 3)))
+        return redirect("/machines")
     return render_template("machines.html", machines=get_instances(conn))

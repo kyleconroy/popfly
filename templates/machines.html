@@ -10,7 +10,11 @@
 <ul>
   {% for machine in machines %}
   <li>
-    <pre>{{ machine }}</pre>
+    <pre>{{ machine.socks }}</pre>
+    <form method="post"
+          action="{{ url_for('terminate', instance_id=machine.id) }}">
+      <input type="submit" value="Terminate Machine">
+    </form>
   </li>
   {% endfor %}
 </ul>
