@@ -1,44 +1,35 @@
 from flask import Flask, request, Response, render_template
-import redis
-import os, urlparse
+import os, urlparse, json
 from functools import wraps
 import boto
-
-
-try:
-    urlparse.uses_netloc.append('redis')
-    url = urlparse.urlparse(os.environ['REDISTOGO_URL'])
-    r = redis.StrictRedis(host=url.hostname, port=url.port, 
-                          db=0, password=url.password)
-except KeyError:
-    r = redis.StrictRedis()
 
 
 def check_auth(username, password):
     """This function is called to check if a username /
     password combination is valid.
     """
-    return password == 'secret'
+    return password == os.environ['POPFLY_PASSWORD']
 
 
-def boot_machine(ttl):
-    conn = boto.connect_ec2()
-    conn.run_instances(
+def create_instance(conn, ttl):
+    reservation = conn.run_instances(
         os.environ['AWS_AMI_IMAGE'],
-        key_name=os.environ['AWS_KEY_PATH_PATH'],
-        instance_type=os.environ['AWS_MACHINE_SIZE'],
-        security_groups=[os.environ['AWS_SECURITY_GROUP'])
+        key_name=os.environ['AWS_KEY_NAME'],
+        instance_type=os.environ['AWS_INSTANCE_TYPE'],
+        security_groups=[os.environ['AWS_SECURITY_GROUP']],
+        user_data=json.dumps({"duration": ttl, "popfly": True}))
 
 
-def machine(name):
-    return {
-        'instance_id': name,
-        'tunnel': '',
-    }
+def tunnel_cmd(instance):
+    cmd = "ssh -i ~/.ssh/{}.pem ubuntu@{} -D 2001"
+    return cmd.format(os.environ['AWS_KEY_NAME'], instance.public_dns_name)
 
 
-def machines():
-    return [machine(name) for name in r.zrange("machines", 0, -1)]
+def get_instances(conn):
+    for reservation in conn.get_all_instances():
+        for instance in reservation.instances:
+            if instance.state == 'running':
+                yield tunnel_cmd(instance)
 
 
 def authenticate():
@@ -58,14 +49,20 @@ def authenticated(f):
         return f(*args, **kwargs)
     return decorated
 
+
 app = Flask(__name__)
+app.debug = True
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-@app.route("/machines")
+@app.route("/machines", methods=['POST', 'GET'])
 @authenticated
 def machines():
-    return render_template("machines.html")
+    conn = boto.connect_ec2()
+    if request.method == 'POST':
+        create_instance(conn, int(request.form.get('ttl', 3)))
+    return render_template("machines.html", machines=get_instances(conn))

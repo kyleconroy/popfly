@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Boot an Instance</h2>
+<form method="POST">
+  <label for="ttl">Machine TTL</label>
+  <input type="number" name="ttl" min="1" max="6" required>
+  <input type="submit" value="Boot Machine">
+</form>
+<h2>Active Instances</h2>
+<ul>
+  {% for machine in machines %}
+  <li>
+    <pre>{{ machine }}</pre>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
