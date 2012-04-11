@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="navbar">
+  <div class="navbar-inner">
+    <div class="container" style="width: auto;">
+      <a class="brand" href="/">Popfly</a>
+      <div class="nav-collapse">
+        <ul class="nav">
+          <li><a href="{{ url_for('machines') }}">Machines</a></li>
+          <li><a href="{{ url_for('help') }}">Help</a></li>
+        </ul>
+        <form class="nav pull-right" method="POST">
+          <input class="btn btn-primary btn-large" type="submit" value="Boot Machine">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="page">
+  {% block page %}{% endblock %}
+</div>
+{% endblock %}
