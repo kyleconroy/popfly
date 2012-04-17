@@ -36,7 +36,7 @@ def should_kill(instance):
     end = datetime.utcnow()
     life = start - end
 
-    print "Current {}".format(life.total_seconds)
+    print "Current {}".format(life.total_seconds())
     print "Machine {}".format(seconds_from_hours(data['duration']))
 
     return life.total_seconds() >= seconds_from_hours(data['duration'])
