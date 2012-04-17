@@ -34,7 +34,7 @@ def should_kill(instance):
 
     start = datetime.strptime(instance.launch_time, "%Y-%m-%dT%H:%M:%S.%fZ")
     end = datetime.utcnow()
-    life = start - end
+    life = end - start
 
     print "Current {}".format(life.total_seconds())
     print "Machine {}".format(seconds_from_hours(data['duration']))
@@ -50,6 +50,7 @@ def kill(instance):
 conn = boto.connect_ec2()
 for reservation in conn.get_all_instances():
     for instance in reservation.instances:
+        print "Checking {}".format(instance.id)
         if should_kill(instance):
             kill(instance)
             print "Killing {}".format(instance.id)
