@@ -13,6 +13,7 @@ def should_kill(instance):
     attributes = instance.get_attribute("userData")
 
     if attributes['userData'] == None:
+        print "Instance has no userdata"
         return False
 
     user_data = base64.b64decode(attributes['userData'])
@@ -20,12 +21,15 @@ def should_kill(instance):
     try:
         data = json.loads(user_data)
     except ValueError:
+        print "User Data isn't json"
         return False
 
     if not data.get("popfly"):
+        print "No key popfly"
         return False
 
     if instance.state != "running":
+        print "Instance isn't running"
         return False
 
     start = datetime.strptime(instance.launch_time, "%Y-%m-%dT%H:%M:%S.%fZ")
